@@ -5,6 +5,10 @@ resources:
       description: Ingests DBSQL query history and writes it to Delta
       tags:
         "workload": "observability"
+      schedule:
+        pause_status: UNPAUSED
+        quartz_cron_expression: 29 0 6 * * ?
+        timezone_id: America/New_York
       parameters:
         - name: catalog
           default: main

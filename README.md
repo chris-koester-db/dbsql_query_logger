@@ -80,7 +80,7 @@ See the [libraries](https://docs.databricks.com/en/libraries/index.html) documen
 
 The code below shows how to run the DBSQL Query Logger. Refer to docstrings for more details.
 
-The [src](src) folder includes a notebook that uses widgets for easy parameterization.
+The [notebooks](notebooks) folder includes a notebook that uses widgets for easy parameterization.
 
 ```python
 import logging
