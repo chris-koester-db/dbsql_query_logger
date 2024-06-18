@@ -15,10 +15,10 @@ A [System Table](https://docs.databricks.com/en/administration-guide/system-tabl
 
 ### Dependencies
 
-* [Deletion Vectors](https://docs.databricks.com/en/delta/deletion-vectors.html) (DBR 14.3 LTS and above) and [Liquid Clustering](https://docs.databricks.com/en/delta/clustering.html) (DBR 3.3 LTS and above). If you need to support an earlier DBR, update the `create_target_table` function accordingly.
+* DBR 14.3 LTS or above is recommended since the target Delta table uses [Deletion Vectors](https://docs.databricks.com/en/delta/deletion-vectors.html) and [Liquid Clustering](https://docs.databricks.com/en/delta/clustering.html). If you need to support an earlier DBR, update the `create_target_table` function accordingly.
 * The Python whl includes the [Databricks SDK](https://docs.databricks.com/en/dev-tools/sdk-python.html) 0.25.1. If you use the module directly, be sure to test any other versions prior to use.
 
-### Deploy as Databricks Asset Bundle (DAB)
+### Deploy as a Databricks Asset Bundle (DAB)
 This option deploys a Job that runs the DBSQL Query Logger as a Python wheel task. Parameters are set in the job.
 
 1. Install the Databricks CLI from https://docs.databricks.com/dev-tools/cli/databricks-cli.html
