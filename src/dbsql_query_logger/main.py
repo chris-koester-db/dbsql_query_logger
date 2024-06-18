@@ -12,8 +12,18 @@ from databricks.sdk import WorkspaceClient
 from databricks.sdk.service.sql import QueryFilter, QueryInfo
 from databricks.sdk.service.sql import TimeRange
 from databricks.connect.session import DatabricksSession
+from pyspark.sql import SparkSession
 
-spark = DatabricksSession.builder.getOrCreate()
+# Create a new Databricks Connect session. If this fails,
+# check that you have configured Databricks Connect correctly.
+# See https://docs.databricks.com/dev-tools/databricks-connect.html.
+def get_spark() -> SparkSession:
+  try:
+    return DatabricksSession.builder.getOrCreate()
+  except ImportError:
+    return SparkSession.builder.getOrCreate() # type: ignore
+
+spark = get_spark()
 logger = logging.getLogger(__name__)
 
 class QueryLogger:
