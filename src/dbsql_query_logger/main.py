@@ -12,8 +12,18 @@ from databricks.sdk import WorkspaceClient
 from databricks.sdk.service.sql import QueryFilter, QueryInfo
 from databricks.sdk.service.sql import TimeRange
 from databricks.connect.session import DatabricksSession
+from pyspark.sql import SparkSession
 
-spark = DatabricksSession.builder.getOrCreate()
+# Create a new Databricks Connect session. If this fails,
+# check that you have configured Databricks Connect correctly.
+# See https://docs.databricks.com/dev-tools/databricks-connect.html.
+def get_spark() -> SparkSession:
+  try:
+    return DatabricksSession.builder.getOrCreate()
+  except ImportError:
+    return SparkSession.builder.getOrCreate() # type: ignore
+
+spark = get_spark()
 logger = logging.getLogger(__name__)
 
 class QueryLogger:
@@ -124,7 +134,7 @@ class QueryLogger:
         """Gets time filters for query history API.
         
         To enable incremental loads, the starting time is obtained from the query_history table in the following order:
-        1. min(query_start_time) of queries in 'QUEUED' or 'RUNNING' status within the past 3 days
+        1. min(query_start_time) of queries in 'QUEUED' or 'RUNNING' status within the past 50 hours (Max query duration in DBSQL is 48 hours)
         2. max(query_start_time)
         3. current_date() - backfill_period (Initial loads only)
 
@@ -141,7 +151,7 @@ class QueryLogger:
                     {self.catalog}.{self.schema}.{self.table}
                   where
                     status in ('QUEUED', 'RUNNING')
-                    and query_start_time >= current_date() - interval 3 days
+                    and query_start_time >= current_timestamp() - interval 50 hours
                 ),
                 max(query_start_time),
                 current_date() - interval {self.backfill_period}
