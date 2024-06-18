@@ -134,7 +134,7 @@ class QueryLogger:
         """Gets time filters for query history API.
         
         To enable incremental loads, the starting time is obtained from the query_history table in the following order:
-        1. min(query_start_time) of queries in 'QUEUED' or 'RUNNING' status within the past 3 days
+        1. min(query_start_time) of queries in 'QUEUED' or 'RUNNING' status within the past 50 hours (Max query duration in DBSQL is 48 hours)
         2. max(query_start_time)
         3. current_date() - backfill_period (Initial loads only)
 
@@ -151,7 +151,7 @@ class QueryLogger:
                     {self.catalog}.{self.schema}.{self.table}
                   where
                     status in ('QUEUED', 'RUNNING')
-                    and query_start_time >= current_date() - interval 3 days
+                    and query_start_time >= current_timestamp() - interval 50 hours
                 ),
                 max(query_start_time),
                 current_date() - interval {self.backfill_period}
