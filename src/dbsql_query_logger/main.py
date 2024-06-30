@@ -23,6 +23,7 @@ def get_spark() -> SparkSession:
   except ImportError:
     return SparkSession.builder.getOrCreate() # type: ignore
 
+w = WorkspaceClient()
 spark = get_spark()
 logger = logging.getLogger(__name__)
 
@@ -30,50 +31,41 @@ class QueryLogger:
     """Gets DBSQL query history from the Databricks API and merges it into a Delta Lake table.
 
     Attributes:
-        catalog (str): Catalog name  
-        schema (str): Schema name  
-        table (str): Table name  
+        catalog (Optional[str]): Catalog name  
+        schema (Optional[str]): Schema name  
+        table (Optional[str]): Table name  
         start_time (Optional[datetime]): Limit results to queries that started after this time  
         end_time (Optional[datetime]): Limit results to queries that started before this time  
         user_ids (Optional[list[int]]): A list of user IDs who ran the queries  
         warehouse_ids (Optional[list[str]]): A list of warehouse IDs  
         include_metrics (bool): Whether to include metrics about query. Defaults to True.  
-        pipeline_mode (str): If set to 'triggered', will load data and exit.  
+        pipeline_mode (Optional[str]): If set to 'triggered', will load data and exit.  
             Otherwise will load data every 10 seconds. Defaults to 'triggered'.  
-        backfill_period (str): Controls how far back to look for the initial load.  
+        backfill_period (Optional[str]): Controls how far back to look for the initial load.  
             Defaults to '7 days'.  
-        reset (str): If set to 'yes', the target table will be replaced. Defaults to 'no'.  
-        additional_cols (dict): Dictionary of additional columns. Provide the column name  
+        reset (Optional[str]): If set to 'yes', the target table will be replaced. Defaults to 'no'.  
+        additional_cols (Optional[dict]): Dictionary of additional columns. Provide the column name  
             as the key, and a SQL expression for the value.  
     """
 
     def __init__(
         self,
-        catalog: str,
-        schema: str,
-        table: str,
+        catalog: Optional[str] = None,
+        schema: Optional[str] = None,
+        table: Optional[str] = None,
         start_time: Optional[datetime] = None,
         end_time: Optional[datetime] = None,
         user_ids: Optional[list[int]] = None,
         warehouse_ids: Optional[list[str]] = None,
         include_metrics: bool = True,
-        pipeline_mode: str = 'triggered',
-        backfill_period: str = '7 days',
-        reset: str = 'no',
+        pipeline_mode: Optional[str] = 'triggered',
+        backfill_period: Optional[str] = '7 days',
+        reset: Optional[str] = 'no',
         additional_cols: Optional[dict] = None
     ):
-        if catalog not in(None, ''):
-            self.catalog = catalog
-        else:
-            raise Exception("A catalog is required but was not provided")
-        if schema not in(None, ''):
-            self.schema = schema
-        else:
-            raise Exception("A schema is required but was not provided")
-        if table not in(None, ''):
-            self.table = table
-        else:
-            raise Exception("A table is required but was not provided")
+        self.catalog = catalog
+        self.schema = schema
+        self.table = table
         self.schema = schema
         self.table = table
         self.start_time = start_time
@@ -85,7 +77,6 @@ class QueryLogger:
         self.backfill_period = backfill_period
         self.reset = reset
         self.additional_cols = additional_cols
-        self.w = WorkspaceClient()
 
     def create_target_table(self) -> None:
         """Creates target Delta Lake table."""
@@ -184,7 +175,7 @@ class QueryLogger:
         
         logger.info(f'Retrieving query history. This can take a while with larger data volumes.')
 
-        query_hist_list = self.w.query_history.list(
+        query_hist_list = w.query_history.list(
             include_metrics=self.include_metrics,
             max_results=1000,
             filter_by = QueryFilter(
@@ -253,7 +244,7 @@ class QueryLogger:
         
         return query_hist_parsed_df
     
-    def load_query_history(self, query_hist_parsed_df: DataFrame) -> None:
+    def merge_into_delta(self, query_hist_parsed_df: DataFrame) -> None:
         """Merges data into a Delta Lake table. Schema evolution is enabled.
         
         The target table is filtered using query_start_time >= '{query_start_time}' to reduce the search space for matches and enable file skipping.
@@ -308,7 +299,7 @@ class QueryLogger:
         self.create_target_table()
 
         if filter_current_user:
-            current_user = self.w.current_user.me()
+            current_user = w.current_user.me()
             current_user_id = int(current_user.id or 0) # Default to 0 to avoid None
             if current_user_id == 0:
                 raise RuntimeError('Failed to get current user')
@@ -324,7 +315,7 @@ class QueryLogger:
             
             query_hist = self.get_query_history()
             query_hist_df = self.create_dataframe(query_hist)
-            self.load_query_history(query_hist_df)
+            self.merge_into_delta(query_hist_df)
             
             if self.pipeline_mode == 'triggered':
                 self.optimize()
