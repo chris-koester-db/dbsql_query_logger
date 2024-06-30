@@ -31,20 +31,20 @@ class QueryLogger:
     """Gets DBSQL query history from the Databricks API and merges it into a Delta Lake table.
 
     Attributes:
-        catalog (str): Catalog name  
-        schema (str): Schema name  
-        table (str): Table name  
+        catalog (Optional[str]): Catalog name  
+        schema (Optional[str]): Schema name  
+        table (Optional[str]): Table name  
         start_time (Optional[datetime]): Limit results to queries that started after this time  
         end_time (Optional[datetime]): Limit results to queries that started before this time  
         user_ids (Optional[list[int]]): A list of user IDs who ran the queries  
         warehouse_ids (Optional[list[str]]): A list of warehouse IDs  
         include_metrics (bool): Whether to include metrics about query. Defaults to True.  
-        pipeline_mode (str): If set to 'triggered', will load data and exit.  
+        pipeline_mode (Optional[str]): If set to 'triggered', will load data and exit.  
             Otherwise will load data every 10 seconds. Defaults to 'triggered'.  
-        backfill_period (str): Controls how far back to look for the initial load.  
+        backfill_period (Optional[str]): Controls how far back to look for the initial load.  
             Defaults to '7 days'.  
-        reset (str): If set to 'yes', the target table will be replaced. Defaults to 'no'.  
-        additional_cols (dict): Dictionary of additional columns. Provide the column name  
+        reset (Optional[str]): If set to 'yes', the target table will be replaced. Defaults to 'no'.  
+        additional_cols (Optional[dict]): Dictionary of additional columns. Provide the column name  
             as the key, and a SQL expression for the value.  
     """
 
