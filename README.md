@@ -1,8 +1,8 @@
 # Databricks SQL Query Logger
 
-Retrieves DBSQL [query history](https://docs.databricks.com/api/workspace/queryhistory/list) and merges it into a Delta Lake table.
+Retrieves DBSQL [query history](https://docs.databricks.com/api/workspace/queryhistory/list) using the Databricks SDK for Python. The library can be used for ad hoc data retrievel or as an incremental ingestion pipeline.
 
-A [System Table](https://docs.databricks.com/en/administration-guide/system-tables/index.html) containing similar data is on the Databricks roadmap, so solutions like this will be mostly unecessary in the near future.
+A System Table called [system.query.history](https://docs.databricks.com/en/admin/system-tables/query-history.html) is now available, and is the recommended way of obtaining query history data.
 
 ## Features
 - Ingests DBSQL query history based on supplied parameters
@@ -10,6 +10,7 @@ A [System Table](https://docs.databricks.com/en/administration-guide/system-tabl
 - Works in triggered or continuous mode:
     - `triggered` - ingests data and exits
     - `continuous` - ingests data every N seconds until cancelled
+- Can be deployed as a [Databricks Asset Bundle](https://docs.databricks.com/en/dev-tools/bundles/index.html) (DAB)
 
 ## Getting Started
 
@@ -64,7 +65,7 @@ This option deploys a Job that runs the DBSQL Query Logger as a Python wheel tas
    https://docs.databricks.com/dev-tools/bundles/index.html.
 
 ### Install Python whl
-This option allows for running the DBSQL Query Logger in a notebook, which can be useful for benchmarks and other scenarios.
+The whl file can also be manually uploaded to a workspace.
 
 - Download the python whl file from the latest [release](https://github.com/chris-koester-db/dbsql_query_logger/releases). It is not published to PyPi.
 - Upload the whl file as a workspace file or to a Unity Catalog volume
@@ -78,9 +79,9 @@ See the [libraries](https://docs.databricks.com/en/libraries/index.html) documen
 
 ### Usage
 
-The code below shows how to run the DBSQL Query Logger. Refer to docstrings for more details.
+The code below shows how to run the DBSQL Query Logger as an incremental ingestion pipeline. Refer to docstrings for more details.
 
-The [notebooks](notebooks) folder includes a notebook that uses widgets for easy parameterization.
+The [notebooks](notebooks) folder includes an example that shows how to load query history into a dataframe.
 
 ```python
 import logging
