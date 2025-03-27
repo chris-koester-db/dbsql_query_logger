@@ -185,7 +185,7 @@ class QueryLogger:
                     start_time_ms=start_time_ms, end_time_ms=end_time_ms
                 )
             )
-        )
+        ).res
 
         return query_hist_list
     
