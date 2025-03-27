@@ -23,7 +23,6 @@ def get_spark() -> SparkSession:
   except ImportError:
     return SparkSession.builder.getOrCreate() # type: ignore
 
-w = WorkspaceClient()
 spark = get_spark()
 logger = logging.getLogger(__name__)
 
@@ -50,6 +49,7 @@ class QueryLogger:
 
     def __init__(
         self,
+        workspace_client: WorkspaceClient,
         catalog: Optional[str] = None,
         schema: Optional[str] = None,
         table: Optional[str] = None,
@@ -63,6 +63,7 @@ class QueryLogger:
         reset: Optional[str] = 'no',
         additional_cols: Optional[dict] = None
     ):
+        self.w = workspace_client
         self.catalog = catalog
         self.schema = schema
         self.table = table
@@ -79,7 +80,10 @@ class QueryLogger:
         self.additional_cols = additional_cols
 
     def create_target_table(self) -> None:
-        """Creates target Delta Lake table."""
+        """Creates target Delta Lake table.
+        
+        Table is heavily commented to improve usability and AI tooling.
+        """
 
         spark.sql(f'use catalog {self.catalog}')
         spark.sql(f'create schema if not exists {self.schema}')
@@ -175,7 +179,7 @@ class QueryLogger:
         
         logger.info(f'Retrieving query history. This can take a while with larger data volumes.')
 
-        query_hist_list = w.query_history.list(
+        query_hist_list = self.w.query_history.list(
             include_metrics=self.include_metrics,
             max_results=1000,
             filter_by = QueryFilter(
@@ -299,7 +303,7 @@ class QueryLogger:
         self.create_target_table()
 
         if filter_current_user:
-            current_user = w.current_user.me()
+            current_user = self.w.current_user.me()
             current_user_id = int(current_user.id or 0) # Default to 0 to avoid None
             if current_user_id == 0:
                 raise RuntimeError('Failed to get current user')
@@ -328,6 +332,11 @@ def main() -> None:
     
     The main function is intended for incremental bulk collection and doesn't support all arguments.
     Support for additional arguments can be added as needed.
+
+    Running from the command line requires configuring authentication to the Databricks SDK.
+    See the Databricks client unified authentication documentation for details:
+
+    https://docs.databricks.com/aws/en/dev-tools/auth/unified-auth 
     """
 
     logging.basicConfig(
@@ -351,6 +360,7 @@ def main() -> None:
     reset = sys.argv[6]
 
     query_logger = QueryLogger(
+        workspace_client = WorkspaceClient(),
         catalog = catalog,
         schema = schema,
         table = table,

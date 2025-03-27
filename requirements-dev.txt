@@ -27,3 +27,6 @@ wheel
 ## for this project.
 #
 # databricks-connect>=13.3,<13.4
+
+## Databricks SDK
+databricks-sdk == 0.29.0
