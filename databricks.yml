@@ -6,6 +6,14 @@ bundle:
 include:
   - resources/*.yml
 
+variables:
+  catalog:
+    description: UC catalog to use
+    default: main
+  schema:
+    description: UC schema to use
+    default: observe
+
 targets:
   # The 'dev' target, for development purposes. This target is the default.
   dev:
@@ -17,6 +25,9 @@ targets:
     default: true
     workspace:
       host: https://e2-demo-field-eng.cloud.databricks.com
+    variables:
+      catalog: main
+      schema: ${workspace.current_user.short_name}
 
   ## Optionally, there could be a 'staging' target here.
   ## (See Databricks docs on CI/CD at https://docs.databricks.com/dev-tools/bundles/ci-cd.html.)
