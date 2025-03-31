@@ -85,7 +85,8 @@ The [notebooks](notebooks) folder includes an example that shows how to load que
 
 ```python
 import logging
-from dbsql_query_logger import QueryLogger
+from databricks.sdk import WorkspaceClient
+from main import QueryLogger
 
 logging.basicConfig(
     format="%(asctime)s %(message)s",
@@ -96,12 +97,13 @@ logger = logging.getLogger('dbsql_query_logger')
 logger.setLevel(logging.INFO)
 
 query_logger = QueryLogger(
-    catalog = 'chris_koester',
-    schema = 'observe',
-    table = 'query_history',
-    pipeline_mode = 'triggered',
-    backfill_period = '24 hours',
-    reset = 'no'
+    workspace_client = WorkspaceClient(),
+    catalog = dbutils.widgets.get('catalog'),
+    schema = dbutils.widgets.get('schema'),
+    table = dbutils.widgets.get('table'),
+    pipeline_mode = dbutils.widgets.get('pipeline_mode'),
+    backfill_period = dbutils.widgets.get('backfill_period'),
+    reset = dbutils.widgets.get('reset')
 )
 
 query_logger.run()
