@@ -17,7 +17,7 @@ A System Table called [system.query.history](https://docs.databricks.com/en/admi
 ### Dependencies
 
 * DBR 14.3 LTS or above is recommended since the target Delta table uses [Deletion Vectors](https://docs.databricks.com/en/delta/deletion-vectors.html) and [Liquid Clustering](https://docs.databricks.com/en/delta/clustering.html). If you need to support an earlier DBR, update the `create_target_table` function accordingly.
-* [Databricks SDK](https://docs.databricks.com/en/dev-tools/sdk-python.html) 0.29.0. Later versions of the SDK don't automatically return all pages of query history results and have breaking changes.  
+* [Databricks SDK](https://docs.databricks.com/en/dev-tools/sdk-python.html) 0.50.0. Later versions of the SDK don't automatically return all pages of query history results and have breaking changes.  
 
 ### Deploy as a Databricks Asset Bundle (DAB)
 This option deploys a Job that runs the DBSQL Query Logger as a Python wheel task. Parameters are set in the job.

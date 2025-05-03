@@ -33,6 +33,6 @@ setup(
         # For defining dependencies, when this package is used in Databricks, see:
         # https://docs.databricks.com/dev-tools/bundles/library-dependencies.html
         "setuptools",
-        "databricks-sdk==0.29.0"
+        "databricks-sdk==0.50.0"
     ],
 )
