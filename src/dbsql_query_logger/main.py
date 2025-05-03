@@ -164,8 +164,8 @@ class QueryLogger:
 
         https://docs.databricks.com/api/workspace/queryhistory/list
         
-        Yields:
-            Iterator[QueryInfo]: generator containing results from the DBSQL query history API
+        Returns:
+            list[ListQueriesResponse]: list containing results from the DBSQL query history API
         """
         
         if self.start_time is None:
