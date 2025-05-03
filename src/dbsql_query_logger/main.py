@@ -9,8 +9,7 @@ from pyspark.sql import DataFrame
 from pyspark.sql.types import StructType, StructField, StringType, LongType, MapType, BooleanType
 import pyspark.sql.functions as F
 from databricks.sdk import WorkspaceClient
-from databricks.sdk.service.sql import QueryFilter, QueryInfo
-from databricks.sdk.service.sql import TimeRange
+from databricks.sdk.service.sql import TimeRange, QueryFilter, QueryInfo, ListQueriesResponse
 from databricks.connect.session import DatabricksSession
 from pyspark.sql import SparkSession
 
@@ -160,13 +159,13 @@ class QueryLogger:
         
         logger.info(f'API filter start time: {self.start_time.strftime("%Y-%m-%d %H:%M:%S")}, end time: {self.end_time.strftime("%Y-%m-%d %H:%M:%S")}')
     
-    def get_query_history(self) -> Iterator[QueryInfo]:
+    def get_query_history(self) -> list[ListQueriesResponse]:
         """Gets DBSQL query history using the Databricks Python SDK.
 
         https://docs.databricks.com/api/workspace/queryhistory/list
         
-        Yields:
-            Iterator[QueryInfo]: generator containing results from the DBSQL query history API
+        Returns:
+            list[ListQueriesResponse]: list containing results from the DBSQL query history API
         """
         
         if self.start_time is None:
@@ -178,8 +177,10 @@ class QueryLogger:
         end_time_ms = int(self.end_time.timestamp() * 1000)
         
         logger.info(f'Retrieving query history. This can take a while with larger data volumes.')
-
-        query_hist_list = self.w.query_history.list(
+        
+        # Get first response
+        resp_list = []
+        resp = self.w.query_history.list(
             include_metrics=self.include_metrics,
             max_results=1000,
             filter_by = QueryFilter(
@@ -190,22 +191,39 @@ class QueryLogger:
                 )
             )
         )
+        resp_list.extend(resp.res)
 
-        return query_hist_list
+        # Get remaining pages of results
+        while resp.has_next_page:
+            resp = self.w.query_history.list(
+                include_metrics=self.include_metrics,
+                max_results=1000,
+                filter_by = QueryFilter(
+                    user_ids=self.user_ids,
+                    warehouse_ids=self.warehouse_ids,
+                    query_start_time_range = TimeRange(
+                        start_time_ms=start_time_ms, end_time_ms=end_time_ms
+                    )
+                ),
+                page_token=resp.next_page_token,
+            )
+            resp_list.extend(resp.res)
+
+        return resp_list
     
-    def create_dataframe(self, query_hist_list) -> DataFrame:
+    def create_dataframe(self, resp_list) -> DataFrame:
         """Creates dataframe from query history API response data.
 
         Data is minimally processed. Unix timestamps are converted to a human readable datetime.
         
         Args:
-            query_hist_list (generator): generator from the Python SDK WorkspaceClient().query_history.list()
+            resp_list (generator): generator from the Python SDK WorkspaceClient().query_history.list()
         
         Returns:
             DataFrame: DataFrame containing DBSQL query history
         """
 
-        query_hist_list = (i.as_dict() for i in query_hist_list)
+        resp_list = (i.as_dict() for i in resp_list)
         
         df_schema = StructType(
             [
@@ -232,7 +250,7 @@ class QueryLogger:
             ]
         )
         
-        query_hist_df = spark.createDataFrame(query_hist_list, df_schema)
+        query_hist_df = spark.createDataFrame(resp_list, df_schema)
 
         query_hist_parsed_df = (
             query_hist_df
