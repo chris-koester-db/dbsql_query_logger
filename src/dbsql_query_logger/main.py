@@ -159,13 +159,13 @@ class QueryLogger:
         
         logger.info(f'API filter start time: {self.start_time.strftime("%Y-%m-%d %H:%M:%S")}, end time: {self.end_time.strftime("%Y-%m-%d %H:%M:%S")}')
     
-    def get_query_history(self) -> list[ListQueriesResponse]:
+    def get_query_history(self) -> list:
         """Gets DBSQL query history using the Databricks Python SDK.
 
         https://docs.databricks.com/api/workspace/queryhistory/list
         
         Returns:
-            list[ListQueriesResponse]: list containing results from the DBSQL query history API
+            list: list containing results from the DBSQL query history API
         """
         
         if self.start_time is None:
@@ -217,7 +217,7 @@ class QueryLogger:
         Data is minimally processed. Unix timestamps are converted to a human readable datetime.
         
         Args:
-            resp_list (generator): generator from the Python SDK WorkspaceClient().query_history.list()
+            resp_list (list): List of results from WorkspaceClient().query_history.list()
         
         Returns:
             DataFrame: DataFrame containing DBSQL query history
