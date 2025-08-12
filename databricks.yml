@@ -2,6 +2,7 @@
 # See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
 bundle:
   name: dbsql_query_logger
+  uuid: 3a9d6df3-6e9c-4301-b3ac-ffa81234e5bd
 
 include:
   - resources/*.yml
